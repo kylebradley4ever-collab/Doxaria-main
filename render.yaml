@@ -1,0 +1,8 @@
+version: "1.0"
+services:
+  mmo-battle:
+    type: web
+    name: mmo-battle
+    env: production
+    buildCommand: "pnpm install && pnpm --filter @workspace/mmo-battle run build"
+    startCommand: "pnpm --filter @workspace/mmo-battle run serve"

@@ -1,0 +1,48 @@
+import { Router, type IRouter } from "express";
+import healthRouter from "./health";
+import playerRouter from "./player";
+import battleRouter from "./battle";
+import inventoryRouter from "./inventory";
+import equipRouter from "./equip";
+import sellRouter from "./sell";
+import enchantRouter from "./enchant";
+import statsRouter from "./stats";
+import raidRouter from "./raid";
+import upgradesRouter from "./upgrades";
+import fishingRouter from "./fishing";
+import prestigeRouter from "./prestige";
+import questsRouter from "./quests";
+import talentsRouter from "./talents";
+import petsRouter from "./pets";
+import codexRouter from "./codex";
+import alchemyRouter from "./alchemy";
+import arenaRouter from "./arena";
+import loginBonusRouter from "./loginbonus";
+import leaderboardRouter from "./leaderboard";
+import challengeRouter from "./challenge";
+
+const router: IRouter = Router();
+
+router.use(healthRouter);
+router.use(playerRouter);
+router.use(battleRouter);
+router.use(inventoryRouter);
+router.use(equipRouter);
+router.use(sellRouter);
+router.use(enchantRouter);
+router.use(statsRouter);
+router.use(raidRouter);
+router.use(upgradesRouter);
+router.use(fishingRouter);
+router.use(prestigeRouter);
+router.use(questsRouter);
+router.use(talentsRouter);
+router.use(petsRouter);
+router.use(codexRouter);
+router.use(alchemyRouter);
+router.use(arenaRouter);
+router.use(loginBonusRouter);
+router.use(leaderboardRouter);
+router.use(challengeRouter);
+
+export default router;

@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "MMO Battle Game"
+version = "1.0.0"
+id = "artifacts/mmo-battle"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19490
+
+[services.development]
+run = "pnpm --filter @workspace/mmo-battle run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/mmo-battle", "run", "build" ]
+publicDir = "artifacts/mmo-battle/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19490"
+BASE_PATH = "/"

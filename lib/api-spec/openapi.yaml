@@ -1,0 +1,597 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: MMO Battle Game API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: player
+    description: Player operations
+  - name: battle
+    description: Battle operations
+  - name: inventory
+    description: Inventory operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /player:
+    get:
+      operationId: getPlayer
+      tags: [player]
+      summary: Get player info
+      responses:
+        "200":
+          description: Player data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Player"
+        "404":
+          description: No player yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createPlayer
+      tags: [player]
+      summary: Create or reset a player
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePlayerRequest"
+      responses:
+        "200":
+          description: Player created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Player"
+
+  /battle:
+    get:
+      operationId: getBattle
+      tags: [battle]
+      summary: Get the current active battle state (if any)
+      responses:
+        "200":
+          description: Current battle state or null if none active
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BattleState"
+        "404":
+          description: No active battle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /battle/start:
+    post:
+      operationId: startBattle
+      tags: [battle]
+      summary: Start a new battle
+      responses:
+        "200":
+          description: Battle started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BattleState"
+
+  /battle/attack:
+    post:
+      operationId: performAttack
+      tags: [battle]
+      summary: Perform an attack in the current battle
+      responses:
+        "200":
+          description: Attack result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BattleResult"
+        "400":
+          description: No active battle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /inventory:
+    get:
+      operationId: getInventory
+      tags: [inventory]
+      summary: Get player inventory
+      responses:
+        "200":
+          description: Inventory items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryResponse"
+
+  /inventory/{id}/equip:
+    post:
+      operationId: equipItem
+      tags: [inventory]
+      summary: Equip an item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Item equipped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EquipResponse"
+        "404":
+          description: Item not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /inventory/{id}/unequip:
+    post:
+      operationId: unequipItem
+      tags: [inventory]
+      summary: Unequip an item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Item unequipped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EquipResponse"
+        "404":
+          description: Item not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /inventory/{id}/enchant:
+    post:
+      operationId: enchantItem
+      tags: [inventory]
+      summary: Enchant an item (+1 stat bonus, costs 1 enchanting stone)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Item enchanted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnchantResponse"
+        "400":
+          description: No stones or item at max enchant level
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Item not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /inventory/{id}/sell:
+    post:
+      operationId: sellItem
+      tags: [inventory]
+      summary: Sell an item for gold
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Item sold
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellResponse"
+        "400":
+          description: Cannot sell equipped item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Item not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /inventory/sell-all:
+    post:
+      operationId: sellAllItems
+      tags: [inventory]
+      summary: Sell all unequipped items of a given rarity (or all unequipped if no rarity)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SellAllRequest"
+      responses:
+        "200":
+          description: Items sold
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellAllResponse"
+
+  /player/ascend:
+    post:
+      operationId: ascendPlayer
+      tags: [player]
+      summary: Ascend — reset level to 1, gain a permanent ascension bonus
+      responses:
+        "200":
+          description: Ascension successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AscendResponse"
+        "400":
+          description: Cannot ascend yet (level too low or battle active)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    CreatePlayerRequest:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+
+    Player:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        level:
+          type: integer
+        xp:
+          type: integer
+        xpToNextLevel:
+          type: integer
+        hp:
+          type: integer
+        maxHp:
+          type: integer
+        attack:
+          type: integer
+        defense:
+          type: integer
+        gold:
+          type: integer
+        monstersDefeated:
+          type: integer
+        enchantingStones:
+          type: integer
+        meleeSkillLevel:
+          type: integer
+        meleeSkillXp:
+          type: integer
+        meleeSkillXpToNext:
+          type: integer
+        defenseSkillLevel:
+          type: integer
+        defenseSkillXp:
+          type: integer
+        defenseSkillXpToNext:
+          type: integer
+        ascensionLevel:
+          type: integer
+      required:
+        - id
+        - name
+        - level
+        - xp
+        - xpToNextLevel
+        - hp
+        - maxHp
+        - attack
+        - defense
+        - gold
+        - monstersDefeated
+        - enchantingStones
+        - meleeSkillLevel
+        - meleeSkillXp
+        - meleeSkillXpToNext
+        - defenseSkillLevel
+        - defenseSkillXp
+        - defenseSkillXpToNext
+        - ascensionLevel
+
+    Monster:
+      type: object
+      properties:
+        name:
+          type: string
+        hp:
+          type: integer
+        maxHp:
+          type: integer
+        attack:
+          type: integer
+        defense:
+          type: integer
+        level:
+          type: integer
+        emoji:
+          type: string
+        isBoss:
+          type: boolean
+        zone:
+          type: integer
+        zoneName:
+          type: string
+      required:
+        - name
+        - hp
+        - maxHp
+        - attack
+        - defense
+        - level
+        - emoji
+
+    BattleState:
+      type: object
+      properties:
+        monster:
+          $ref: "#/components/schemas/Monster"
+        player:
+          $ref: "#/components/schemas/Player"
+        log:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, victory, defeat]
+      required:
+        - monster
+        - player
+        - log
+        - status
+
+    AscendResponse:
+      type: object
+      properties:
+        player:
+          $ref: "#/components/schemas/Player"
+        message:
+          type: string
+        ascensionLevel:
+          type: integer
+      required:
+        - player
+        - message
+        - ascensionLevel
+
+    LootItem:
+      type: object
+      properties:
+        name:
+          type: string
+        rarity:
+          type: string
+          enum: [Common, Uncommon, Rare, Epic, Legendary, Mythic, Divine, Abyssal, Transcendent, Cosmic, Eternal]
+        emoji:
+          type: string
+        goldValue:
+          type: integer
+        type:
+          type: string
+          enum: [weapon, armor, boots, gloves, amulet, ring]
+        statBonus:
+          type: integer
+      required:
+        - name
+        - rarity
+        - emoji
+        - goldValue
+        - type
+        - statBonus
+
+    BattleResult:
+      type: object
+      properties:
+        monster:
+          $ref: "#/components/schemas/Monster"
+        player:
+          $ref: "#/components/schemas/Player"
+        log:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, victory, defeat]
+        loot:
+          oneOf:
+            - $ref: "#/components/schemas/LootItem"
+            - type: "null"
+        xpGained:
+          type: integer
+        goldGained:
+          type: integer
+        leveledUp:
+          type: boolean
+        stoneDropped:
+          type: boolean
+      required:
+        - monster
+        - player
+        - log
+        - status
+
+    InventoryItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        rarity:
+          type: string
+          enum: [Common, Uncommon, Rare, Epic, Legendary, Mythic, Divine, Abyssal, Transcendent, Cosmic, Eternal]
+        emoji:
+          type: string
+        goldValue:
+          type: integer
+        type:
+          type: string
+          enum: [weapon, armor, boots, gloves, amulet, ring]
+        statBonus:
+          type: integer
+        equipped:
+          type: boolean
+        enchantLevel:
+          type: integer
+        obtainedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - rarity
+        - emoji
+        - goldValue
+        - type
+        - statBonus
+        - equipped
+        - enchantLevel
+        - obtainedAt
+
+    EquipResponse:
+      type: object
+      properties:
+        item:
+          $ref: "#/components/schemas/InventoryItem"
+        player:
+          $ref: "#/components/schemas/Player"
+      required:
+        - item
+        - player
+
+    InventoryResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/InventoryItem"
+        totalItems:
+          type: integer
+      required:
+        - items
+        - totalItems
+
+    EnchantResponse:
+      type: object
+      properties:
+        item:
+          $ref: "#/components/schemas/InventoryItem"
+        player:
+          $ref: "#/components/schemas/Player"
+      required:
+        - item
+        - player
+
+    SellResponse:
+      type: object
+      properties:
+        goldGained:
+          type: integer
+        player:
+          $ref: "#/components/schemas/Player"
+      required:
+        - goldGained
+        - player
+
+    SellAllRequest:
+      type: object
+      properties:
+        rarity:
+          type: string
+          enum: [Common, Uncommon, Rare, Epic, Legendary, Mythic, Divine, Abyssal, Transcendent, Cosmic, Eternal]
+
+    SellAllResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+        goldGained:
+          type: integer
+        player:
+          $ref: "#/components/schemas/Player"
+      required:
+        - count
+        - goldGained
+        - player
