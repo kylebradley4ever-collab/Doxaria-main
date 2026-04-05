@@ -1,4 +1,4 @@
 "scripts": {
   "build": "tsc",
-  "start": "node src/index.ts"
+  "start": "node dist/index.js"
 }
